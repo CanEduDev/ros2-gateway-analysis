@@ -129,47 +129,60 @@ def create_plots(results_df, output_dir="plots", direction='can_to_ros'):
         target_label = 'CAN'
         source_timestamp = 'ros_timestamp'
 
-    # Create a figure with multiple subplots
-    fig = plt.figure(figsize=(20, 16))  # noqa: F841
-
     # 1. Latency over time
-    plt.subplot(3, 2, 1)
+    plt.figure(figsize=(12, 8))
     plt.scatter(results_df[source_timestamp], results_df['latency'] * 1000000,
                 alpha=0.6, s=20, color='blue')
     plt.xlabel(f'{source_label} Timestamp')
     plt.ylabel('Latency (μs)')
     plt.title(f'{source_label} → {target_label} Latency Over Time')
     plt.grid(True, alpha=0.3)
+    latency_time_file = os.path.join(output_dir, f'latency_over_time_{direction}.png')
+    plt.savefig(latency_time_file, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"Latency over time plot saved to: {latency_time_file}")
 
     # 2. Jitter over time
-    plt.subplot(3, 2, 2)
     if 'jitter' in results_df.columns:
+        plt.figure(figsize=(12, 8))
         plt.scatter(results_df[source_timestamp][1:], results_df['jitter'][1:] * 1000000,
                     alpha=0.6, s=20, color='blue')
         plt.xlabel(f'{source_label} Timestamp')
         plt.ylabel('Jitter (μs)')
         plt.title(f'{source_label} → {target_label} Jitter Over Time')
         plt.grid(True, alpha=0.3)
+        jitter_time_file = os.path.join(output_dir, f'jitter_over_time_{direction}.png')
+        plt.savefig(jitter_time_file, dpi=300, bbox_inches='tight')
+        plt.close()
+        print(f"Jitter over time plot saved to: {jitter_time_file}")
 
     # 3. Latency histogram
-    plt.subplot(3, 2, 3)
+    plt.figure(figsize=(12, 8))
     plt.hist(results_df['latency'] * 1000000, bins=50, alpha=0.7, edgecolor='black', color='blue')
     plt.xlabel('Latency (μs)')
     plt.ylabel('Frequency')
     plt.title(f'{source_label} → {target_label} Latency Distribution')
     plt.grid(True, alpha=0.3)
+    latency_hist_file = os.path.join(output_dir, f'latency_histogram_{direction}.png')
+    plt.savefig(latency_hist_file, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"Latency histogram saved to: {latency_hist_file}")
 
     # 4. Jitter histogram
-    plt.subplot(3, 2, 4)
     if 'jitter' in results_df.columns:
+        plt.figure(figsize=(12, 8))
         plt.hist(results_df['jitter'][1:] * 1000000, bins=50, alpha=0.7, edgecolor='black', color='blue')
         plt.xlabel('Jitter (μs)')
         plt.ylabel('Frequency')
         plt.title(f'{source_label} → {target_label} Jitter Distribution')
         plt.grid(True, alpha=0.3)
+        jitter_hist_file = os.path.join(output_dir, f'jitter_histogram_{direction}.png')
+        plt.savefig(jitter_hist_file, dpi=300, bbox_inches='tight')
+        plt.close()
+        print(f"Jitter histogram saved to: {jitter_hist_file}")
 
     # 5. Latency vs Value correlation
-    plt.subplot(3, 2, 5)
+    plt.figure(figsize=(12, 8))
     source_value = 'can_value' if direction == 'can_to_ros' else 'ros_value'
     plt.scatter(results_df[source_value], results_df['latency'] * 1000000,
                 alpha=0.6, s=20, color='blue')
@@ -177,11 +190,15 @@ def create_plots(results_df, output_dir="plots", direction='can_to_ros'):
     plt.ylabel('Latency (μs)')
     plt.title(f'Latency vs {source_label} Value')
     plt.grid(True, alpha=0.3)
+    latency_vs_value_file = os.path.join(output_dir, f'latency_vs_value_{direction}.png')
+    plt.savefig(latency_vs_value_file, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"Latency vs value plot saved to: {latency_vs_value_file}")
 
     # 6. Rolling statistics
-    plt.subplot(3, 2, 6)
     window_size = min(100, len(results_df) // 10)
     if window_size > 1:
+        plt.figure(figsize=(12, 8))
         rolling_mean = results_df['latency'].rolling(window=window_size).mean() * 1000000
         rolling_std = results_df['latency'].rolling(window=window_size).std() * 1000000
         plt.plot(results_df[source_timestamp], rolling_mean, label='Rolling Mean', linewidth=2, color='blue')
@@ -194,10 +211,10 @@ def create_plots(results_df, output_dir="plots", direction='can_to_ros'):
         plt.title(f'{source_label} → {target_label} Rolling Statistics (window={window_size})')
         plt.legend()
         plt.grid(True, alpha=0.3)
-
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f'latency_analysis_{direction}.png'), dpi=300, bbox_inches='tight')
-    plt.show()
+        rolling_stats_file = os.path.join(output_dir, f'rolling_statistics_{direction}.png')
+        plt.savefig(rolling_stats_file, dpi=300, bbox_inches='tight')
+        plt.close()
+        print(f"Rolling statistics plot saved to: {rolling_stats_file}")
 
     # Create additional detailed plots
     create_detailed_plots(results_df, output_dir, direction)
@@ -215,14 +232,17 @@ def create_detailed_plots(results_df, output_dir, direction):
 
     # 1. Box plot of latency statistics
     plt.figure(figsize=(12, 8))
-    plt.subplot(2, 2, 1)
     plt.boxplot(results_df['latency'] * 1000000, patch_artist=True, boxprops=dict(facecolor='lightblue'))
     plt.ylabel('Latency (μs)')
     plt.title('Latency Box Plot')
     plt.grid(True, alpha=0.3)
+    box_plot_file = os.path.join(output_dir, f'latency_boxplot_{direction}.png')
+    plt.savefig(box_plot_file, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"Latency box plot saved to: {box_plot_file}")
 
     # 2. Cumulative distribution of latency
-    plt.subplot(2, 2, 2)
+    plt.figure(figsize=(12, 8))
     sorted_latency = np.sort(results_df['latency'] * 1000000)
     cumulative_prob = np.arange(1, len(sorted_latency) + 1) / len(sorted_latency)
     plt.plot(sorted_latency, cumulative_prob, linewidth=2, color='blue')
@@ -230,9 +250,13 @@ def create_detailed_plots(results_df, output_dir, direction):
     plt.ylabel('Cumulative Probability')
     plt.title('Cumulative Distribution of Latency')
     plt.grid(True, alpha=0.3)
+    cumulative_dist_file = os.path.join(output_dir, f'cumulative_distribution_{direction}.png')
+    plt.savefig(cumulative_dist_file, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"Cumulative distribution plot saved to: {cumulative_dist_file}")
 
     # 3. Time series of latency with moving average
-    plt.subplot(2, 2, 3)
+    plt.figure(figsize=(12, 8))
     plt.plot(results_df[source_timestamp], results_df['latency'] * 1000000,
              alpha=0.5, label='Raw Latency', color='lightblue')
     window_size = min(50, len(results_df) // 20)
@@ -245,20 +269,24 @@ def create_detailed_plots(results_df, output_dir, direction):
     plt.title('Latency Time Series')
     plt.legend()
     plt.grid(True, alpha=0.3)
+    time_series_file = os.path.join(output_dir, f'latency_timeseries_{direction}.png')
+    plt.savefig(time_series_file, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"Latency time series plot saved to: {time_series_file}")
 
     # 4. Jitter analysis
-    plt.subplot(2, 2, 4)
     if 'jitter' in results_df.columns:
+        plt.figure(figsize=(12, 8))
         plt.plot(results_df[source_timestamp][1:], results_df['jitter'][1:] * 1000000,
                 alpha=0.6, linewidth=1, color='blue')
         plt.xlabel(f'{source_label} Timestamp')
         plt.ylabel('Jitter (μs)')
         plt.title('Jitter Time Series')
         plt.grid(True, alpha=0.3)
-
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f'detailed_analysis_{direction}.png'), dpi=300, bbox_inches='tight')
-    plt.show()
+        jitter_timeseries_file = os.path.join(output_dir, f'jitter_timeseries_{direction}.png')
+        plt.savefig(jitter_timeseries_file, dpi=300, bbox_inches='tight')
+        plt.close()
+        print(f"Jitter time series plot saved to: {jitter_timeseries_file}")
 
 def print_statistics(results_df, output_dir="plots", direction='can_to_ros'):
     """Print comprehensive statistics about the latency and jitter."""
