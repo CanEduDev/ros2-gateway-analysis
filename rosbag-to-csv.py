@@ -18,7 +18,7 @@ def main():
         writer.writerow(["timestamp", "topic", "value"])
 
         for msg in read_ros2_messages(args.mcap_file):
-            log_time = str(msg.log_time_ns)
+            log_time = str(msg.publish_time_ns)
             formatted_log_time = log_time[:-9] + "." + log_time[-9:]
 
             # Filter by topic if specified, otherwise include all topics

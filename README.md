@@ -36,7 +36,16 @@ python rosbag-to-csv.py --topic /rover/radio/steering rosbag.mcap
 mv rosbag.csv rosbag-steering-only.csv
 ```
 
+## Cleaning up logs
+Make sure the filtered logs have the same line count, so that the plot generation works properly.
+
 ## Generating plots
+Measuring latency from CAN message transmission until ROS topic publishing:
 ```
-python latency_analysis.py --can-file candump-steering-only.csv --ros-file rosbag-steering-only.csv --output-dir plots
+python latency_analysis.py --can-file candump-steering-only.csv --ros-file rosbag-steering-only.csv --direction can_to_ros
+```
+
+Measuring latency from ROS topic publishing until CAN message transmission:
+```
+python latency_analysis.py --can-file candump-steering-only.csv --ros-file rosbag-steering-only.csv --direction ros_to_can
 ```
