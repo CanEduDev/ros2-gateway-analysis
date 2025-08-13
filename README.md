@@ -32,7 +32,7 @@ Add "timestamp,topic,value" to top of generated file.
 ## Processing ROS bag
 
 ```
-python rosbag-to-csv.py --topic /rover/radio/steering rosbag.mcap
+./rosbag-to-csv.py --topic /rover/radio/steering rosbag.mcap
 mv rosbag.csv rosbag-steering-only.csv
 ```
 
@@ -42,10 +42,10 @@ Make sure the filtered logs have the same line count, so that the plot generatio
 ## Generating plots
 Measuring latency from CAN message transmission until ROS topic publishing:
 ```
-python latency_analysis.py --can-file candump-steering-only.csv --ros-file rosbag-steering-only.csv --direction can_to_ros
+./latency_analysis.py --can-file candump-steering-only.csv --ros-file rosbag-steering-only.csv --direction can_to_ros
 ```
 
 Measuring latency from ROS topic publishing until CAN message transmission:
 ```
-python latency_analysis.py --can-file candump-steering-only.csv --ros-file rosbag-steering-only.csv --direction ros_to_can
+./latency_analysis.py --can-file candump-steering-only.csv --ros-file rosbag-steering-only.csv --direction ros_to_can
 ```
