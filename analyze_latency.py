@@ -2,19 +2,14 @@
 """
 Latency and Jitter Analysis Script
 
-This script analyzes the latency and jitter between CAN steering messages
-and radio steering topic messages to evaluate system performance.
+This script analyzes the latency and jitter between CAN throttle messages
+and ROS cmd_vel topic messages to evaluate system performance.
 
-The script can measure latency in two directions:
-- CAN → ROS: Measures time from CAN message sent to ROS message received
-- ROS → CAN: Measures time from ROS message sent to CAN message received
-
-Use the --direction argument to specify the measurement direction.
+The script measures latency from CAN message sent to ROS message received (CAN → ROS).
 
 PREREQUISITES:
-- Both CSV files must be preprocessed to contain only relevant messages
-- Both files must have the same number of messages
-- The script will error out if these conditions are not met
+- CSV file must be preprocessed to contain only relevant messages in chronological order
+- Messages should alternate between CAN and ROS messages
 """
 
 import pandas as pd
@@ -24,84 +19,66 @@ import seaborn as sns
 import argparse
 import os
 
-def load_data(can_file, ros_file):
-    """Load and prepare the data from both CSV files."""
-    print(f"Loading CAN data from: {can_file}")
-    can_df = pd.read_csv(can_file)
-    can_df['timestamp'] = pd.to_numeric(can_df['timestamp'])
+def load_data(csv_file):
+    """Load and prepare the data from the combined CSV file."""
+    print(f"Loading data from: {csv_file}")
+    df = pd.read_csv(csv_file)
+    df['timestamp'] = pd.to_numeric(df['timestamp'])
 
-    print(f"Loading ROS data from: {ros_file}")
-    ros_df = pd.read_csv(ros_file)
-    ros_df['timestamp'] = pd.to_numeric(ros_df['timestamp'])
+    # Separate CAN and ROS messages
+    can_df = df[df['message'] == 'can_throttle'].copy()
+    ros_df = df[df['message'] == '/rover/radio/cmd_vel'].copy()
 
     print(f"CAN messages: {len(can_df)}")
     print(f"ROS messages: {len(ros_df)}")
 
+    # Sort by timestamp
+    can_df = can_df.sort_values('timestamp').reset_index(drop=True)
+    ros_df = ros_df.sort_values('timestamp').reset_index(drop=True)
+
     return can_df, ros_df
 
-def calculate_latency_and_jitter(can_df, ros_df, direction='can_to_ros'):
+def calculate_latency_and_jitter(can_df, ros_df):
     """
     Calculate latency and jitter between CAN and ROS messages.
 
     Args:
         can_df: DataFrame with CAN messages
         ros_df: DataFrame with ROS messages
-        direction: 'can_to_ros' or 'ros_to_can' to specify measurement direction
 
     Returns:
         DataFrame with latency analysis results
     """
-    print(f"Calculating latency and jitter ({direction})...")
+    print("Calculating latency and jitter (CAN → ROS)...")
 
-    # Validate that both files have the same length
-    if len(can_df) != len(ros_df):
-        print("ERROR: File length mismatch!")
-        print(f"CAN file has {len(can_df)} messages")
-        print(f"ROS file has {len(ros_df)} messages")
-        print("Please ensure both log files have been preprocessed to contain only relevant messages")
-        print("and that both files have the same number of messages.")
-        raise ValueError("File length mismatch - both files must have the same number of messages")
-
-    # Sort both dataframes by timestamp
-    can_df = can_df.sort_values('timestamp').reset_index(drop=True)
-    ros_df = ros_df.sort_values('timestamp').reset_index(drop=True)
+    # Find the minimum number of messages to pair
+    min_messages = min(len(can_df), len(ros_df))
+    print(f"Using {min_messages} message pairs for analysis")
 
     latencies = []
     can_timestamps = []
     ros_timestamps = []
-    can_values = []
-    ros_values = []
 
-    # Use paired messages (same index position) since files are preprocessed
-    for idx in range(len(can_df)):
+    # Pair messages by index (assuming they are in chronological order)
+    for idx in range(min_messages):
         can_row = can_df.iloc[idx]
         ros_row = ros_df.iloc[idx]
 
         can_time = can_row['timestamp']
         ros_time = ros_row['timestamp']
-        can_value = can_row['value']
-        ros_value = ros_row['value']
 
-        if direction == 'can_to_ros':
-            # Measure time from CAN message to ROS message
-            latency = ros_time - can_time
-        elif direction == 'ros_to_can':
-            # Measure time from ROS message to CAN message
-            latency = can_time - ros_time
+        # Measure time from CAN message to ROS message
+        latency = ros_time - can_time
 
         latencies.append(latency)
         can_timestamps.append(can_time)
         ros_timestamps.append(ros_time)
-        can_values.append(can_value)
-        ros_values.append(ros_value)
 
     # Create results DataFrame
     results_df = pd.DataFrame({
         'can_timestamp': can_timestamps,
         'ros_timestamp': ros_timestamps,
-        'latency': latencies,
-        'can_value': can_values,
-        'ros_value': ros_values
+        'latency': latencies
     })
 
     # Calculate jitter (variation in latency)
@@ -111,23 +88,19 @@ def calculate_latency_and_jitter(can_df, ros_df, direction='can_to_ros'):
     print(f"Analyzed {len(results_df)} message pairs")
     return results_df
 
-def create_plots(results_df, output_dir="plots", direction='can_to_ros'):
+def create_plots(results_df, output_dir="plots"):
     """Create comprehensive plots for latency and jitter analysis."""
-    os.makedirs(output_dir, exist_ok=True)
+    plots_dir = os.path.join(output_dir, "plots")
+    os.makedirs(plots_dir, exist_ok=True)
 
     # Set up the plotting style
     plt.style.use('seaborn-v0_8')
     sns.set_palette("Blues")
 
-    # Determine direction labels for plots
-    if direction == 'can_to_ros':
-        source_label = 'CAN'
-        target_label = 'ROS'
-        source_timestamp = 'can_timestamp'
-    else:  # ros_to_can
-        source_label = 'ROS'
-        target_label = 'CAN'
-        source_timestamp = 'ros_timestamp'
+    # Direction labels for plots
+    source_label = 'CAN'
+    target_label = 'ROS'
+    source_timestamp = 'can_timestamp'
 
     # 1. Latency over time
     plt.figure(figsize=(12, 8))
@@ -137,7 +110,7 @@ def create_plots(results_df, output_dir="plots", direction='can_to_ros'):
     plt.ylabel('Latency (μs)')
     plt.title(f'{source_label} → {target_label} Latency Over Time')
     plt.grid(True, alpha=0.3)
-    latency_time_file = os.path.join(output_dir, f'latency_over_time_{direction}.png')
+    latency_time_file = os.path.join(plots_dir, 'latency_over_time.png')
     plt.savefig(latency_time_file, dpi=300, bbox_inches='tight')
     plt.close()
     print(f"Latency over time plot saved to: {latency_time_file}")
@@ -151,7 +124,7 @@ def create_plots(results_df, output_dir="plots", direction='can_to_ros'):
         plt.ylabel('Jitter (μs)')
         plt.title(f'{source_label} → {target_label} Jitter Over Time')
         plt.grid(True, alpha=0.3)
-        jitter_time_file = os.path.join(output_dir, f'jitter_over_time_{direction}.png')
+        jitter_time_file = os.path.join(plots_dir, 'jitter_over_time.png')
         plt.savefig(jitter_time_file, dpi=300, bbox_inches='tight')
         plt.close()
         print(f"Jitter over time plot saved to: {jitter_time_file}")
@@ -163,7 +136,7 @@ def create_plots(results_df, output_dir="plots", direction='can_to_ros'):
     plt.ylabel('Frequency')
     plt.title(f'{source_label} → {target_label} Latency Distribution')
     plt.grid(True, alpha=0.3)
-    latency_hist_file = os.path.join(output_dir, f'latency_histogram_{direction}.png')
+    latency_hist_file = os.path.join(plots_dir, 'latency_histogram.png')
     plt.savefig(latency_hist_file, dpi=300, bbox_inches='tight')
     plt.close()
     print(f"Latency histogram saved to: {latency_hist_file}")
@@ -176,26 +149,12 @@ def create_plots(results_df, output_dir="plots", direction='can_to_ros'):
         plt.ylabel('Frequency')
         plt.title(f'{source_label} → {target_label} Jitter Distribution')
         plt.grid(True, alpha=0.3)
-        jitter_hist_file = os.path.join(output_dir, f'jitter_histogram_{direction}.png')
+        jitter_hist_file = os.path.join(plots_dir, 'jitter_histogram.png')
         plt.savefig(jitter_hist_file, dpi=300, bbox_inches='tight')
         plt.close()
         print(f"Jitter histogram saved to: {jitter_hist_file}")
 
-    # 5. Latency vs Value correlation
-    plt.figure(figsize=(12, 8))
-    source_value = 'can_value' if direction == 'can_to_ros' else 'ros_value'
-    plt.scatter(results_df[source_value], results_df['latency'] * 1000000,
-                alpha=0.6, s=20, color='blue')
-    plt.xlabel(f'{source_label} Value')
-    plt.ylabel('Latency (μs)')
-    plt.title(f'Latency vs {source_label} Value')
-    plt.grid(True, alpha=0.3)
-    latency_vs_value_file = os.path.join(output_dir, f'latency_vs_value_{direction}.png')
-    plt.savefig(latency_vs_value_file, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Latency vs value plot saved to: {latency_vs_value_file}")
-
-    # 6. Rolling statistics
+    # 5. Rolling statistics
     window_size = min(100, len(results_df) // 10)
     if window_size > 1:
         plt.figure(figsize=(12, 8))
@@ -211,24 +170,22 @@ def create_plots(results_df, output_dir="plots", direction='can_to_ros'):
         plt.title(f'{source_label} → {target_label} Rolling Statistics (window={window_size})')
         plt.legend()
         plt.grid(True, alpha=0.3)
-        rolling_stats_file = os.path.join(output_dir, f'rolling_statistics_{direction}.png')
+        rolling_stats_file = os.path.join(plots_dir, 'rolling_statistics.png')
         plt.savefig(rolling_stats_file, dpi=300, bbox_inches='tight')
         plt.close()
         print(f"Rolling statistics plot saved to: {rolling_stats_file}")
 
     # Create additional detailed plots
-    create_detailed_plots(results_df, output_dir, direction)
+    create_detailed_plots(results_df, output_dir)
 
-def create_detailed_plots(results_df, output_dir, direction):
+def create_detailed_plots(results_df, output_dir):
     """Create additional detailed analysis plots."""
 
-    # Determine direction labels for plots
-    if direction == 'can_to_ros':
-        source_label = 'CAN'
-        source_timestamp = 'can_timestamp'
-    else:  # ros_to_can
-        source_label = 'ROS'
-        source_timestamp = 'ros_timestamp'
+    plots_dir = os.path.join(output_dir, "plots")
+
+    # Direction labels for plots (CAN → ROS)
+    source_label = 'CAN'
+    source_timestamp = 'can_timestamp'
 
     # 1. Box plot of latency statistics
     plt.figure(figsize=(12, 8))
@@ -236,7 +193,7 @@ def create_detailed_plots(results_df, output_dir, direction):
     plt.ylabel('Latency (μs)')
     plt.title('Latency Box Plot')
     plt.grid(True, alpha=0.3)
-    box_plot_file = os.path.join(output_dir, f'latency_boxplot_{direction}.png')
+    box_plot_file = os.path.join(plots_dir, 'latency_boxplot.png')
     plt.savefig(box_plot_file, dpi=300, bbox_inches='tight')
     plt.close()
     print(f"Latency box plot saved to: {box_plot_file}")
@@ -250,7 +207,7 @@ def create_detailed_plots(results_df, output_dir, direction):
     plt.ylabel('Cumulative Probability')
     plt.title('Cumulative Distribution of Latency')
     plt.grid(True, alpha=0.3)
-    cumulative_dist_file = os.path.join(output_dir, f'cumulative_distribution_{direction}.png')
+    cumulative_dist_file = os.path.join(plots_dir, 'cumulative_distribution.png')
     plt.savefig(cumulative_dist_file, dpi=300, bbox_inches='tight')
     plt.close()
     print(f"Cumulative distribution plot saved to: {cumulative_dist_file}")
@@ -269,7 +226,7 @@ def create_detailed_plots(results_df, output_dir, direction):
     plt.title('Latency Time Series')
     plt.legend()
     plt.grid(True, alpha=0.3)
-    time_series_file = os.path.join(output_dir, f'latency_timeseries_{direction}.png')
+    time_series_file = os.path.join(plots_dir, 'latency_timeseries.png')
     plt.savefig(time_series_file, dpi=300, bbox_inches='tight')
     plt.close()
     print(f"Latency time series plot saved to: {time_series_file}")
@@ -283,25 +240,20 @@ def create_detailed_plots(results_df, output_dir, direction):
         plt.ylabel('Jitter (μs)')
         plt.title('Jitter Time Series')
         plt.grid(True, alpha=0.3)
-        jitter_timeseries_file = os.path.join(output_dir, f'jitter_timeseries_{direction}.png')
+        jitter_timeseries_file = os.path.join(plots_dir, 'jitter_timeseries.png')
         plt.savefig(jitter_timeseries_file, dpi=300, bbox_inches='tight')
         plt.close()
         print(f"Jitter time series plot saved to: {jitter_timeseries_file}")
 
-def print_statistics(results_df, output_dir="plots", direction='can_to_ros'):
+def print_statistics(results_df, output_dir="plots"):
     """Print comprehensive statistics about the latency and jitter."""
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
 
-    # Determine direction labels
-    if direction == 'can_to_ros':
-        source_label = 'CAN'
-        target_label = 'ROS'
-        source_timestamp = 'can_timestamp'
-    else:  # ros_to_can
-        source_label = 'ROS'
-        target_label = 'CAN'
-        source_timestamp = 'ros_timestamp'
+    # Direction labels (CAN → ROS)
+    source_label = 'CAN'
+    target_label = 'ROS'
+    source_timestamp = 'can_timestamp'
 
     # Prepare the statistics text
     stats_text = []
@@ -354,7 +306,7 @@ def print_statistics(results_df, output_dir="plots", direction='can_to_ros'):
         print(line)
 
     # Save to file
-    results_file = os.path.join(output_dir, f'results_{direction}.txt')
+    results_file = os.path.join(output_dir, 'results.txt')
     with open(results_file, 'w') as f:
         f.write('\n'.join(stats_text))
 
@@ -362,31 +314,28 @@ def print_statistics(results_df, output_dir="plots", direction='can_to_ros'):
 
 def main():
     parser = argparse.ArgumentParser(description='Analyze latency and jitter between CAN and ROS messages')
-    parser.add_argument('--can-file', required=True, help='Path to CAN CSV file')
-    parser.add_argument('--ros-file', required=True, help='Path to ROS CSV file')
+    parser.add_argument('--csv-file', required=True, help='Path to the combined CSV file containing CAN and ROS messages')
     parser.add_argument('--output-dir', default='plots', help='Output directory for plots')
-    parser.add_argument('--direction', choices=['can_to_ros', 'ros_to_can'], default='can_to_ros',
-                       help='Direction of latency measurement: can_to_ros (CAN→ROS) or ros_to_can (ROS→CAN)')
     parser.add_argument('--no-plots', action='store_true', help='Skip generating plots')
 
     args = parser.parse_args()
 
     # Load data
-    can_df, ros_df = load_data(args.can_file, args.ros_file)
+    can_df, ros_df = load_data(args.csv_file)
 
     # Calculate latency and jitter
-    results_df = calculate_latency_and_jitter(can_df, ros_df, args.direction)
+    results_df = calculate_latency_and_jitter(can_df, ros_df)
 
     # Print statistics
-    print_statistics(results_df, args.output_dir, args.direction)
+    print_statistics(results_df, args.output_dir)
 
     # Create plots
     if not args.no_plots:
-        print(f"\nGenerating plots in directory: {args.output_dir}")
-        create_plots(results_df, args.output_dir, args.direction)
+        print(f"\nGenerating plots in directory: {args.output_dir}/plots")
+        create_plots(results_df, args.output_dir)
 
     # Save results to CSV
-    output_csv = os.path.join(args.output_dir, f'latency_results_{args.direction}.csv')
+    output_csv = os.path.join(args.output_dir, 'latency_results.csv')
     results_df.to_csv(output_csv, index=False)
     print(f"Results saved to: {output_csv}")
 

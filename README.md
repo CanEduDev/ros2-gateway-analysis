@@ -2,50 +2,48 @@
 
 Repo contains scripts and instructions to generate the figures for the ROS2 paper.
 
-Start the recordings before you start the Rover, to ensure you get as many CAN messages as ROS messages.
+## Setting up docker container for recording
 
-## Recording ROS bag
-```
-ros2 bag record --all
-```
-
-## Recording CAN data
-```
-candump -d -e -x -l can0
-```
-
-## Processing CAN data
+Start rover-ros-gateway through run-ros-gateway script. Then:
 
 ```
-cd ~/rover
-source .venv/bin/activate
+docker exec -it --user root rover-ros-gateway bash
 
-python rover_py/can-log-decoder.py rover.dbc candump.log candump.csv
-
-grep "STEERING,0x100,STEERING_ANGLE" candump.csv > candump-steering-only.csv
-
-sed s/"0x100,STEERING_ANGLE,"// -i candump-steering-only.csv
-
-Add "timestamp,topic,value" to top of generated file.
+# in container:
+apt update
+apt install -y ros-jazzy-rosbag2 can-utils
+su ubuntu
+source install/setup.bash
 ```
 
-## Processing ROS bag
+## Recording data
+For CAN-to-ROS recordings, enable radio safety override. For ROS-to-CAN, disable it.
 
+Use timeout command to specify duration of recording.
+
+CAN-to-ROS:
 ```
-./rosbag-to-csv.py --topic /rover/radio/steering rosbag.mcap
-mv rosbag.csv rosbag-steering-only.csv
+timeout 60 bash -c "candump -d -e -x -l can0 & ros2 bag record --topics /rover/radio/cmd_vel"
 ```
 
-## Cleaning up logs
-Make sure the filtered logs have the same line count, so that the plot generation works properly.
+TODO: think about this some more. You're not really measuring latency because the controller runs at a fixed frequency. Maybe measure jitter between CAN messages instead to see how accurate it is.
+ROS-to-CAN:
+```
+timeout 60 bash -c "candump -d -e -x -l can0 & ros2 bag record --topics /rover/cmd_vel"
+```
 
+Copy the data from the container to your filesystem. Adjust filenames to be correct.
+```
+docker cp rover-ros-gateway:/ros2_ws/candump.log .
+docker cp rover-ros-gateway:/ros2_ws/rosbag2/rosbag2.mcap .
+```
+
+## Convert logs to CSV
+```
+./logs_to_csv.py --can-log candump.log --ros-log rosbag2.mcap
+```
 ## Generating plots
 Measuring latency from CAN message transmission until ROS topic publishing:
 ```
-./latency_analysis.py --can-file candump-steering-only.csv --ros-file rosbag-steering-only.csv --direction can_to_ros
-```
-
-Measuring latency from ROS topic publishing until CAN message transmission:
-```
-./latency_analysis.py --can-file candump-steering-only.csv --ros-file rosbag-steering-only.csv --direction ros_to_can
+./analyze_latency.py --csv-file filtered-logs.csv --output-dir output
 ```
