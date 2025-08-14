@@ -58,16 +58,17 @@ def create_comparison_plots():
     base_path = "recordings/2025-08-14"
 
     # Define test configurations
+    node_counts = [1, 5, 10]
     configs = {
         'no_traffic': {
             '1-nodes': f"{base_path}/1-nodes-no-traffic/results.txt",
-            '6-nodes': f"{base_path}/6-nodes-no-traffic/results.txt",
-            '11-nodes': f"{base_path}/11-nodes-no-traffic/results.txt"
+            '5-nodes': f"{base_path}/5-nodes-no-traffic/results.txt",
+            '10-nodes': f"{base_path}/10-nodes-no-traffic/results.txt"
         },
         'with_traffic': {
             '1-nodes': f"{base_path}/1-nodes/results.txt",
-            '6-nodes': f"{base_path}/6-nodes/results.txt",
-            '11-nodes': f"{base_path}/11-nodes/results.txt"
+            '5-nodes': f"{base_path}/5-nodes/results.txt",
+            '10-nodes': f"{base_path}/10-nodes/results.txt"
         }
     }
 
@@ -91,16 +92,14 @@ def create_comparison_plots():
     # Create the comparison plot
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
-    # Extract node counts for x-axis
-    node_counts = [1, 6, 11]
     x_pos = np.arange(len(node_counts))
 
     # Plot CPU usage comparison
     cpu_no_traffic = [results['no_traffic'][f'{n}-nodes']['cpu'] for n in node_counts]
     cpu_with_traffic = [results['with_traffic'][f'{n}-nodes']['cpu'] for n in node_counts]
 
-    ax1.plot(node_counts, cpu_no_traffic, linewidth=2, color='blue', label='No Traffic')
-    ax1.plot(node_counts, cpu_with_traffic, linewidth=2, color='red', label='With Traffic')
+    ax1.plot(node_counts, cpu_no_traffic, linewidth=2, color='blue', label='No Traffic', marker='o', markersize=8)
+    ax1.plot(node_counts, cpu_with_traffic, linewidth=2, color='green', label='With Traffic', marker='s', markersize=8)
     ax1.set_xlabel('Number of Nodes')
     ax1.set_ylabel('Mean CPU Usage (%)')
     ax1.set_title('CPU Usage Comparison')
@@ -112,8 +111,8 @@ def create_comparison_plots():
     memory_no_traffic = [results['no_traffic'][f'{n}-nodes']['memory'] for n in node_counts]
     memory_with_traffic = [results['with_traffic'][f'{n}-nodes']['memory'] for n in node_counts]
 
-    ax2.plot(node_counts, memory_no_traffic, linewidth=2, color='blue', label='No Traffic')
-    ax2.plot(node_counts, memory_with_traffic, linewidth=2, color='red', label='With Traffic')
+    ax2.plot(node_counts, memory_no_traffic, linewidth=2, color='blue', label='No Traffic', marker='o', markersize=8)
+    ax2.plot(node_counts, memory_with_traffic, linewidth=2, color='green', label='With Traffic', marker='s', markersize=8)
     ax2.set_xlabel('Number of Nodes')
     ax2.set_ylabel('Mean Memory Usage (MB)')
     ax2.set_title('Memory Usage Comparison')
@@ -124,9 +123,8 @@ def create_comparison_plots():
     plt.tight_layout()
 
     # Save the plot
-    output_file = "resource_usage_comparison.png"
+    output_file = f"{base_path}/resource_usage_comparison.png"
     plt.savefig(output_file, dpi=300, bbox_inches='tight')
-    plt.show()
 
     print(f"\nComparison plot saved to: {output_file}")
 
