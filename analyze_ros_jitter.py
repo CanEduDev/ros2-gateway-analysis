@@ -104,36 +104,9 @@ def create_plots(results_df, output_dir="plots"):
     plt.style.use('seaborn-v0_8')
     sns.set_palette("Blues")
 
-    # 1. Interval over time
+    # Message interval histogram
     plt.figure(figsize=(12, 8))
-    plt.scatter(results_df['timestamp'], results_df['interval'] * 1000,
-                alpha=0.6, s=20, color='green')
-    plt.xlabel('Timestamp')
-    plt.ylabel('Interval (ms)')
-    plt.title('Throttle CAN Message Message Intervals Over Time')
-    plt.grid(True, alpha=0.3)
-    interval_time_file = os.path.join(plots_dir, 'interval_over_time.png')
-    plt.savefig(interval_time_file, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Interval over time plot saved to: {interval_time_file}")
-
-    # 2. Jitter over time
-    if 'jitter' in results_df.columns:
-        plt.figure(figsize=(12, 8))
-        plt.scatter(results_df['timestamp'][1:], results_df['jitter'][1:] * 1000,
-                    alpha=0.6, s=20, color='green')
-        plt.xlabel('Timestamp')
-        plt.ylabel('Jitter (ms)')
-        plt.title('Throttle CAN Message Jitter Over Time')
-        plt.grid(True, alpha=0.3)
-        jitter_time_file = os.path.join(plots_dir, 'jitter_over_time.png')
-        plt.savefig(jitter_time_file, dpi=300, bbox_inches='tight')
-        plt.close()
-        print(f"Jitter over time plot saved to: {jitter_time_file}")
-
-    # 3. Interval histogram
-    plt.figure(figsize=(12, 8))
-    plt.hist(results_df['interval'] * 1000, bins=50, alpha=0.7, edgecolor='black', color='green')
+    plt.hist(results_df['interval'] * 1000, bins=50, alpha=0.7, edgecolor='black', color='blue')
     plt.xlabel('Interval (ms)')
     plt.ylabel('Frequency')
     plt.title('Throttle CAN Message Interval Distribution')
@@ -143,81 +116,10 @@ def create_plots(results_df, output_dir="plots"):
     plt.close()
     print(f"Interval histogram saved to: {interval_hist_file}")
 
-    # 4. Jitter histogram
-    if 'jitter' in results_df.columns:
-        plt.figure(figsize=(12, 8))
-        plt.hist(results_df['jitter'][1:] * 1000, bins=50, alpha=0.7, edgecolor='black', color='green')
-        plt.xlabel('Jitter (ms)')
-        plt.ylabel('Frequency')
-        plt.title('Throttle CAN Message Jitter Distribution')
-        plt.grid(True, alpha=0.3)
-        jitter_hist_file = os.path.join(plots_dir, 'jitter_histogram.png')
-        plt.savefig(jitter_hist_file, dpi=300, bbox_inches='tight')
-        plt.close()
-        print(f"Jitter histogram saved to: {jitter_hist_file}")
-
-    # 5. Rolling statistics
-    window_size = min(100, len(results_df) // 10)
-    if window_size > 1:
-        plt.figure(figsize=(12, 8))
-        rolling_mean = results_df['interval'].rolling(window=window_size).mean() * 1000
-        rolling_std = results_df['interval'].rolling(window=window_size).std() * 1000
-        plt.plot(results_df['timestamp'], rolling_mean, label='Rolling Mean', linewidth=2, color='green')
-        plt.fill_between(results_df['timestamp'],
-                        rolling_mean - rolling_std,
-                        rolling_mean + rolling_std,
-                        alpha=0.3, label='±1σ', color='lightgreen')
-        plt.xlabel('Timestamp')
-        plt.ylabel('Interval (ms)')
-        plt.title(f'Throttle CAN Message Rolling Statistics (window={window_size})')
-        plt.legend()
-        plt.grid(True, alpha=0.3)
-        rolling_stats_file = os.path.join(plots_dir, 'rolling_statistics.png')
-        plt.savefig(rolling_stats_file, dpi=300, bbox_inches='tight')
-        plt.close()
-        print(f"Rolling statistics plot saved to: {rolling_stats_file}")
-
-    # Create additional detailed plots
-    create_detailed_plots(results_df, output_dir)
-
-def create_detailed_plots(results_df, output_dir):
-    """Create additional detailed analysis plots."""
-    plots_dir = os.path.join(output_dir, "plots")
-
-    # 1. Box plot of interval statistics
-    plt.figure(figsize=(12, 8))
-    plt.boxplot(results_df['interval'] * 1000, patch_artist=True, boxprops=dict(facecolor='lightgreen'))
-    plt.ylabel('Interval (ms)')
-    plt.title('Throttle CAN Message Interval Box Plot')
-    plt.grid(True, alpha=0.3)
-    box_plot_file = os.path.join(plots_dir, 'interval_boxplot.png')
-    plt.savefig(box_plot_file, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Interval box plot saved to: {box_plot_file}")
-
-    # 2. Cumulative distribution of intervals
-    plt.figure(figsize=(12, 8))
-    sorted_interval = np.sort(results_df['interval'] * 1000)
-    cumulative_prob = np.arange(1, len(sorted_interval) + 1) / len(sorted_interval)
-    plt.plot(sorted_interval, cumulative_prob, linewidth=2, color='green')
-    plt.xlabel('Interval (ms)')
-    plt.ylabel('Cumulative Probability')
-    plt.title('Cumulative Distribution of Throttle CAN Message Intervals')
-    plt.grid(True, alpha=0.3)
-    cumulative_dist_file = os.path.join(plots_dir, 'cumulative_distribution.png')
-    plt.savefig(cumulative_dist_file, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Cumulative distribution plot saved to: {cumulative_dist_file}")
-
-    # 3. Time series of intervals with moving average
+    # Message interval time series
     plt.figure(figsize=(12, 8))
     plt.plot(results_df['timestamp'], results_df['interval'] * 1000,
-             alpha=0.5, label='Raw Intervals', color='lightgreen')
-    window_size = min(50, len(results_df) // 20)
-    if window_size > 1:
-        moving_avg = results_df['interval'].rolling(window=window_size).mean() * 1000
-        plt.plot(results_df['timestamp'], moving_avg,
-                linewidth=2, label=f'Moving Average (window={window_size})', color='green')
+             alpha=0.5, label='Raw Intervals', color='blue')
     plt.xlabel('Timestamp')
     plt.ylabel('Interval (ms)')
     plt.title('Throttle CAN Message Interval Time Series')
@@ -228,11 +130,11 @@ def create_detailed_plots(results_df, output_dir):
     plt.close()
     print(f"Interval time series plot saved to: {time_series_file}")
 
-    # 4. Jitter analysis
+    # Jitter time series
     if 'jitter' in results_df.columns:
         plt.figure(figsize=(12, 8))
         plt.plot(results_df['timestamp'][1:], results_df['jitter'][1:] * 1000,
-                alpha=0.6, linewidth=1, color='green')
+                alpha=0.6, linewidth=1, color='blue')
         plt.xlabel('Timestamp')
         plt.ylabel('Jitter (ms)')
         plt.title('Throttle CAN Message Jitter Time Series')
@@ -242,16 +144,19 @@ def create_detailed_plots(results_df, output_dir):
         plt.close()
         print(f"Jitter time series plot saved to: {jitter_timeseries_file}")
 
-    # 5. Direction analysis (if applicable)
-    if 'direction' in results_df.columns:
+    # Jitter histogram
+    if 'jitter' in results_df.columns:
         plt.figure(figsize=(12, 8))
-        direction_counts = results_df['direction'].value_counts()
-        plt.pie(direction_counts.values, labels=direction_counts.index, autopct='%1.1f%%', colors=['lightgreen', 'lightblue'])
-        plt.title('Throttle CAN Message Message Direction Distribution')
-        direction_pie_file = os.path.join(plots_dir, 'direction_distribution.png')
-        plt.savefig(direction_pie_file, dpi=300, bbox_inches='tight')
+        plt.hist(results_df['jitter'][1:] * 1000, bins=50, alpha=0.7, edgecolor='black', color='blue')
+        plt.xlabel('Jitter (ms)')
+        plt.ylabel('Frequency')
+        plt.title('Throttle CAN Message Jitter Distribution')
+        plt.grid(True, alpha=0.3)
+        jitter_hist_file = os.path.join(plots_dir, 'jitter_histogram.png')
+        plt.savefig(jitter_hist_file, dpi=300, bbox_inches='tight')
         plt.close()
-        print(f"Direction distribution plot saved to: {direction_pie_file}")
+        print(f"Jitter histogram saved to: {jitter_hist_file}")
+
 
 def print_statistics(results_df, output_dir="plots"):
     """Print comprehensive statistics about the jitter analysis."""

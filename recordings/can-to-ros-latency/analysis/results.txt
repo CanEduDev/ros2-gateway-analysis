@@ -1,5 +1,5 @@
 ============================================================
-LATENCY AND JITTER ANALYSIS RESULTS (CAN → ROS)
+LATENCY AND JITTER ANALYSIS RESULTS (CAN to ROS)
 ============================================================
 
 Latency Statistics (μs):
