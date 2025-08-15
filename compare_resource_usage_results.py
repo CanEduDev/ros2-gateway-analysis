@@ -8,6 +8,7 @@ and creates comparison plots of mean CPU and memory usage.
 
 import os
 import re
+import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 from typing import Dict, Tuple
@@ -21,7 +22,7 @@ def parse_results_file(file_path: str) -> Tuple[float, float]:
         file_path: Path to the results.txt file
 
     Returns:
-        Tuple of (mean_cpu, mean_memory) in percentage and MB respectively
+        Tuple of (mean_cpu, mean_memory) in percentage and MiB respectively
     """
     if not os.path.exists(file_path):
         print(f"Warning: File not found: {file_path}")
@@ -38,9 +39,9 @@ def parse_results_file(file_path: str) -> Tuple[float, float]:
         if cpu_match:
             mean_cpu = float(cpu_match.group(1))
 
-        # Extract mean memory usage (in MB)
+        # Extract mean memory usage (in MiB)
         # Look for the Memory Usage Statistics section
-        memory_section = re.search(r'Memory Usage Statistics \(MB\):(.*?)Memory Percentage Statistics',
+        memory_section = re.search(r'Memory Usage Statistics \(MiB\):(.*?)Memory Percentage Statistics',
                                   content, re.DOTALL)
         if memory_section:
             memory_match = re.search(r'Mean: (\d+\.\d+)', memory_section.group(1))
@@ -50,12 +51,13 @@ def parse_results_file(file_path: str) -> Tuple[float, float]:
     return mean_cpu, mean_memory
 
 
-def create_comparison_plots():
+def create_comparison_plots(base_path: str):
     """
     Create comparison plots for CPU and memory usage across different configurations.
+
+    Args:
+        base_path: Base directory path containing the test results
     """
-    # Hardcoded paths to results files
-    base_path = "recordings/2025-08-14"
 
     # Define test configurations
     node_counts = [1, 5, 10]
@@ -82,7 +84,7 @@ def create_comparison_plots():
                 'cpu': mean_cpu,
                 'memory': mean_memory
             }
-            print(f"{traffic_type} - {node_count}: CPU={mean_cpu:.3f}%, Memory={mean_memory:.3f}MB")
+            print(f"{traffic_type} - {node_count}: CPU={mean_cpu:.3f}%, Memory={mean_memory:.3f}MiB")
 
         # Set up plotting style to match measure_resource_usage.py
     plt.style.use('seaborn-v0_8')
@@ -122,7 +124,7 @@ def create_comparison_plots():
     ax2.bar(x_pos - width/2, memory_no_traffic, width, label='No Traffic', color='blue', alpha=0.8)
     ax2.bar(x_pos + width/2, memory_with_traffic, width, label='With Traffic', color='green', alpha=0.8)
     ax2.set_xlabel('Number of Nodes')
-    ax2.set_ylabel('Mean Memory Usage (MB)')
+    ax2.set_ylabel('Mean Memory Usage (MiB)')
     ax2.set_title('Memory Usage Comparison')
     ax2.legend()
     ax2.grid(True, alpha=0.3)
@@ -141,7 +143,7 @@ def create_comparison_plots():
     print("\n" + "="*60)
     print("SUMMARY TABLE")
     print("="*60)
-    print(f"{'Config':<15} {'CPU (%)':<10} {'Memory (MB)':<12}")
+    print(f"{'Config':<15} {'CPU (%)':<10} {'Memory (MiB)':<12}")
     print("-" * 60)
 
     for traffic_type in ['no_traffic', 'with_traffic']:
@@ -155,4 +157,10 @@ def create_comparison_plots():
 
 
 if __name__ == '__main__':
-    create_comparison_plots()
+    parser = argparse.ArgumentParser(description='Compare resource usage results across different test configurations')
+    parser.add_argument('--base-path', '-b',
+                        required=True,
+                        help='Base directory path containing the test results')
+
+    args = parser.parse_args()
+    create_comparison_plots(args.base_path)

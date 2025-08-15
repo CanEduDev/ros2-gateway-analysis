@@ -1,0 +1,35 @@
+============================================================
+DOCKER STATS MONITORING RESULTS
+============================================================
+
+Data Summary:
+  Total data points: 236
+  Time span: 0 days 00:00:58.499757
+  Container: rover-ros-gateway
+
+CPU Usage Statistics (%):
+  Mean: 5.023
+  Median: 4.780
+  Std Dev: 1.023
+  Min: 0.000
+  Max: 8.450
+  95th percentile: 6.300
+  99th percentile: 8.450
+
+Memory Usage Statistics (MiB):
+  Mean: 69.770
+  Median: 69.770
+  Std Dev: 0.000
+  Min: 69.770
+  Max: 69.770
+  95th percentile: 69.770
+  99th percentile: 69.770
+
+Memory Percentage Statistics (%):
+  Mean: 0.440
+  Median: 0.440
+  Std Dev: 0.000
+  Min: 0.440
+  Max: 0.440
+  95th percentile: 0.440
+  99th percentile: 0.440

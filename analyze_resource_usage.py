@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Docker Stats Analyzer
+Resource Usage Analyzer
 
-This script analyzes Docker stats CSV data and generates plots and statistics.
+This script analyzes resource usage CSV data and generates plots and statistics.
 """
 
 import pandas as pd
@@ -60,7 +60,7 @@ def create_plots(csv_file: str, output_dir: str):
     memory_usage = []
     for mem_str in df['MemUsage']:
         try:
-            # Extract the first part (used memory) and convert to MB
+            # Extract the first part (used memory) and convert to MiB
             used_mem = mem_str.split('/')[0].strip()
             if 'GiB' in used_mem:
                 mem_mb = float(used_mem.replace('GiB', '')) * 1024
@@ -76,7 +76,7 @@ def create_plots(csv_file: str, output_dir: str):
 
     plt.plot(df['relative_time'], memory_usage, linewidth=2, color='red')
     plt.xlabel('Time (seconds)')
-    plt.ylabel('Memory Usage (MB)')
+    plt.ylabel('Memory Usage (MiB)')
     plt.title('Memory Usage Over Time')
     plt.grid(True, alpha=0.3)
     memory_file = os.path.join(plots_dir, 'memory_usage_over_time.png')
@@ -114,7 +114,7 @@ def create_plots(csv_file: str, output_dir: str):
     # Memory subplot
     ax2.plot(df['relative_time'], memory_usage, linewidth=2, color='red')
     ax2.set_xlabel('Time (seconds)')
-    ax2.set_ylabel('Memory Usage (MB)')
+    ax2.set_ylabel('Memory Usage (MiB)')
     ax2.set_title('Memory Usage Over Time')
     ax2.grid(True, alpha=0.3)
 
@@ -183,7 +183,7 @@ def print_statistics(csv_file: str, output_dir: str):
     output_lines.append(f"  95th percentile: {cpu_percent.quantile(0.95):.3f}")
     output_lines.append(f"  99th percentile: {cpu_percent.quantile(0.99):.3f}")
 
-    output_lines.append(f"\nMemory Usage Statistics (MB):")
+    output_lines.append(f"\nMemory Usage Statistics (MiB):")
     output_lines.append(f"  Mean: {pd.Series(memory_usage).mean():.3f}")
     output_lines.append(f"  Median: {pd.Series(memory_usage).median():.3f}")
     output_lines.append(f"  Std Dev: {pd.Series(memory_usage).std():.3f}")
@@ -217,13 +217,13 @@ def print_statistics(csv_file: str, output_dir: str):
 def main():
     """Main function."""
     parser = argparse.ArgumentParser(
-        description='Analyze Docker stats CSV data and generate plots and statistics'
+        description='Analyze resource usage CSV data and generate plots and statistics'
     )
     parser.add_argument(
         '--input-csv', '-i',
         type=str,
         required=True,
-        help='Input CSV file with Docker stats data (required)'
+        help='Input CSV file with resource usage data (required)'
     )
     parser.add_argument(
         '--output-dir', '-o',

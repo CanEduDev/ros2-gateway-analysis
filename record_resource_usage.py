@@ -187,8 +187,7 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
 
     # Generate CSV filename with timestamp
-    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    csv_file = os.path.join(args.output_dir, f"docker_stats_{timestamp}.csv")
+    csv_file = os.path.join(args.output_dir, "resource-usage.csv")
 
     try:
         # Run docker stats collection

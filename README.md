@@ -1,6 +1,7 @@
 # ROS2 Gateway application analysis
 
-Repo contains scripts and instructions to generate the figures for the ROS2 paper.
+Repo contains scripts and instructions to generate the figures for the ROS2
+paper. Everything tested with commit 876c58d in Rover repo.
 
 ## CAN to ROS latency analysis
 
@@ -70,11 +71,11 @@ Repeat for different launch configurations.
 
 Run analysis:
 ```
-./analyze_resource_usage.py -i 1-nodes-no-traffic/docker_stats.csv -o 1-nodes-no-traffic
-./analyze_resource_usage.py -i 1-nodes/docker_stats.csv -o 1-nodes
+./analyze_resource_usage.py -i 1-nodes-no-traffic/resource-usage.csv -o 1-nodes-no-traffic
+./analyze_resource_usage.py -i 1-nodes/resource-usage.csv -o 1-nodes
 ```
 
 When performed for all 6 variants, run:
 ```
-./compare_resource_usage_results.py
+./compare_resource_usage_results.py -b .
 ```
