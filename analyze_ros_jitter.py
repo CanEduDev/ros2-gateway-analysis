@@ -118,9 +118,11 @@ def create_plots(results_df, output_dir="plots"):
 
     # Message interval time series
     plt.figure(figsize=(12, 8))
-    plt.plot(results_df['timestamp'], results_df['interval'] * 1000,
+    # Calculate elapsed time from the first timestamp
+    elapsed_time = results_df['timestamp'] - results_df['timestamp'].min()
+    plt.plot(elapsed_time, results_df['interval'] * 1000,
              alpha=0.5, label='Raw Intervals', color='blue')
-    plt.xlabel('Timestamp')
+    plt.xlabel('Elapsed Time (s)')
     plt.ylabel('Interval (ms)')
     plt.title('Throttle CAN Message Interval Time Series')
     plt.legend()
@@ -133,9 +135,11 @@ def create_plots(results_df, output_dir="plots"):
     # Jitter time series
     if 'jitter' in results_df.columns:
         plt.figure(figsize=(12, 8))
-        plt.plot(results_df['timestamp'][1:], results_df['jitter'][1:] * 1000,
+        # Calculate elapsed time from the first timestamp
+        elapsed_time = results_df['timestamp'][1:] - results_df['timestamp'].min()
+        plt.plot(elapsed_time, results_df['jitter'][1:] * 1000,
                 alpha=0.6, linewidth=1, color='blue')
-        plt.xlabel('Timestamp')
+        plt.xlabel('Elapsed Time (s)')
         plt.ylabel('Jitter (ms)')
         plt.title('Throttle CAN Message Jitter Time Series')
         plt.grid(True, alpha=0.3)

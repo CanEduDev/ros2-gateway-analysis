@@ -104,9 +104,11 @@ def create_plots(results_df, output_dir="plots"):
 
     # Latency time series
     plt.figure(figsize=(12, 8))
-    plt.plot(results_df[source_timestamp], results_df['latency'] * 1000000,
+    # Calculate elapsed time from the first timestamp
+    elapsed_time = results_df[source_timestamp] - results_df[source_timestamp].min()
+    plt.plot(elapsed_time, results_df['latency'] * 1000000,
              alpha=0.5, label='Raw Latency', color='blue')
-    plt.xlabel(f'{source_label} Timestamp')
+    plt.xlabel('Elapsed Time (s)')
     plt.ylabel('Latency (μs)')
     plt.title('Latency Time Series')
     plt.legend()
@@ -131,9 +133,11 @@ def create_plots(results_df, output_dir="plots"):
     # Jitter time series
     if 'jitter' in results_df.columns:
         plt.figure(figsize=(12, 8))
-        plt.plot(results_df[source_timestamp][1:], results_df['jitter'][1:] * 1000000,
+        # Calculate elapsed time from the first timestamp
+        elapsed_time = results_df[source_timestamp][1:] - results_df[source_timestamp].min()
+        plt.plot(elapsed_time, results_df['jitter'][1:] * 1000000,
                 alpha=0.6, linewidth=1, color='blue')
-        plt.xlabel(f'{source_label} Timestamp')
+        plt.xlabel('Elapsed Time (s)')
         plt.ylabel('Jitter (μs)')
         plt.title('Jitter Time Series')
         plt.grid(True, alpha=0.3)
