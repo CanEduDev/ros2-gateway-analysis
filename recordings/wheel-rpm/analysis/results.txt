@@ -1,0 +1,36 @@
+============================================================
+RPM ANALYSIS RESULTS (CAN to ROS)
+============================================================
+
+Delay Statistics (μs):
+  Count: 299
+  Mean: 324.191
+  Median: 329.733
+  Std Dev: 57.975
+  Min: 113.010
+  Max: 457.048
+  95th percentile: 403.190
+  99th percentile: 431.614
+
+RPM Statistics:
+  CAN RPM - Mean: 115.406
+  CAN RPM - Min: 0.000
+  CAN RPM - Max: 581.492
+  ROS RPM - Mean: 115.406
+  ROS RPM - Min: 0.000
+  ROS RPM - Max: 581.492
+
+RPM Difference Statistics:
+  Mean difference: 0.000
+  Std Dev difference: 0.000
+  Min difference: 0.000
+  Max difference: 0.000
+
+Time Analysis:
+  Time span: 59.60 seconds
+  Messages per second: 5.02
+
+Delay Categories:
+  ≤500μs: 299 (100.00%)
+  500-1000μs: 0 (0.00%)
+  >1000μs: 0 (0.00%)
