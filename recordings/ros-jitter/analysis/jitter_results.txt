@@ -1,5 +1,5 @@
 ============================================================
-Throttle CAN Message JITTER ANALYSIS RESULTS
+Controller Node Transmission JITTER ANALYSIS RESULTS
 ============================================================
 
 Interval Statistics (ms):
