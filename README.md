@@ -1,7 +1,7 @@
 # ROS2 Gateway application analysis
 
 Repo contains scripts and instructions to generate the figures for the ROS2
-paper. Everything tested with commit 876c58d in Rover repo.
+paper. Everything tested with v0.13.0 in the Rover repo.
 
 ## CAN to ROS latency analysis
 
@@ -37,7 +37,6 @@ docker cp rover-ros-gateway:/ros2_ws/rosbag2/rosbag2.mcap .
 ```
 
 ### Generating plots
-Measuring latency from CAN message transmission until ROS topic publishing:
 ```
 ./analyze_latency.py --csv-file filtered-logs.csv --output-dir output
 ```
@@ -53,6 +52,11 @@ Disable safety override.
 Log CAN data:
 ```
 timeout 60 candump -d -e -x -l can0
+```
+
+### Generating plots
+```
+./analyze_ros_jitter.py --log-file candump.log --output-dir output
 ```
 
 ## Resource usage measurements
@@ -98,9 +102,11 @@ source install/setup.bash
 ```
 
 Use timeout command to specify duration of recording.
+During recording, move the wheels using the radio, to get values other than 0.
 ```
 timeout 60 bash -c "candump -d -e -x -l can0 & ros2 bag record --topics /rover/wheel_front_left/wheel_status"
 ```
+
 
 Copy the data from the container to your filesystem. Adjust filenames to be correct.
 ```
@@ -114,7 +120,6 @@ docker cp rover-ros-gateway:/ros2_ws/rosbag2/rosbag2.mcap .
 ```
 
 ### Generating plots
-Measuring latency from CAN message transmission until ROS topic publishing:
 ```
 ./analyze_rpm.py --csv-file filtered-logs.csv --output-dir output
 ```

@@ -5,30 +5,30 @@ Controller Node Transmission JITTER ANALYSIS RESULTS
 Interval Statistics (ms):
   Count: 5999
   Mean: 10.000
-  Median: 9.999
-  Std Dev: 0.181
-  Min: 8.827
-  Max: 11.232
-  95th percentile: 10.161
-  99th percentile: 10.824
+  Median: 10.002
+  Std Dev: 0.213
+  Min: 8.390
+  Max: 11.554
+  95th percentile: 10.317
+  99th percentile: 10.574
 
 Jitter Statistics (ms):
   Count: 5998
-  Mean: 0.169
-  Median: 0.100
-  Std Dev: 0.266
+  Mean: 0.270
+  Median: 0.208
+  Std Dev: 0.250
   Min: 0.000
-  Max: 2.390
-  95th percentile: 0.615
-  99th percentile: 1.646
+  Max: 3.164
+  95th percentile: 0.695
+  99th percentile: 1.224
 
 Time Analysis:
   Time span: 59.98 seconds
   Messages per second: 100.02
 
 Interval Categories:
-  ≤10ms: 3073 (51.23%)
-  10-20ms: 2926 (48.77%)
+  ≤10ms: 2965 (49.42%)
+  10-20ms: 3034 (50.58%)
   >20ms: 0 (0.00%)
 
 Direction Statistics:

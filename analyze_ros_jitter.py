@@ -131,7 +131,7 @@ def create_plots(results_df, output_dir="plots"):
         ax1.set_xlabel('Elapsed Time (s)')
         ax1.set_ylabel('Interval (ms)', color=color1)
         ax1.tick_params(axis='y', labelcolor=color1)
-        ax1.set_ylim(bottom=7)  # Set interval y-axis to start from 7 ms
+        ax1.set_ylim(6,12)
 
         # Create secondary y-axis for jitter (right)
         ax2 = ax1.twinx()
@@ -141,7 +141,7 @@ def create_plots(results_df, output_dir="plots"):
                 color=color2, alpha=0.7, linewidth=1, label='Jitter')
         ax2.set_ylabel('Jitter (ms)', color=color2)
         ax2.tick_params(axis='y', labelcolor=color2)
-        ax2.set_ylim(0, 5)  # Set jitter y-axis to go from 0 to 5 ms
+        ax2.set_ylim(0, 6)
 
         # Add grid and title
         ax1.grid(True, alpha=0.3)

@@ -3,30 +3,30 @@ LATENCY AND JITTER ANALYSIS RESULTS (CAN to ROS)
 ============================================================
 
 Latency Statistics (μs):
-  Count: 7006
-  Mean: 147.914
-  Median: 138.521
-  Std Dev: 63.539
-  Min: 60.320
-  Max: 1391.172
-  95th percentile: 213.802
-  99th percentile: 375.724
+  Count: 6714
+  Mean: 170.413
+  Median: 174.522
+  Std Dev: 73.957
+  Min: 39.816
+  Max: 1074.553
+  95th percentile: 273.788
+  99th percentile: 425.982
 
 Jitter Statistics (μs):
-  Count: 7005
-  Mean: 52.819
-  Median: 37.670
-  Std Dev: 57.571
+  Count: 6713
+  Mean: 72.896
+  Median: 59.605
+  Std Dev: 66.577
   Min: 0.000
-  Max: 934.839
-  95th percentile: 128.031
-  99th percentile: 292.530
+  Max: 883.579
+  95th percentile: 193.453
+  99th percentile: 321.093
 
 Time Analysis:
-  Time span: 59.63 seconds
-  Messages per second: 117.50
+  Time span: 57.15 seconds
+  Messages per second: 117.47
 
 Latency Categories:
-  ≤500μs: 6976 (99.57%)
-  500-1000μs: 28 (0.40%)
-  >1000μs: 2 (0.03%)
+  ≤500μs: 6694 (99.70%)
+  500-1000μs: 19 (0.28%)
+  >1000μs: 1 (0.01%)
