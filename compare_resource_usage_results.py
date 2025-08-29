@@ -89,55 +89,49 @@ def create_comparison_plots(base_path: str):
         # Set up plotting style to match measure_resource_usage.py
     plt.style.use('seaborn-v0_8')
     import seaborn as sns
-    sns.set_palette("Blues")
+    sns.set_context("paper", font_scale=1.25)
+    sns.set_palette("Blues_r")
 
     x_pos = np.arange(len(node_counts))
     width = 0.35  # Width of the bars
 
-    # Create CPU usage comparison plot
-    fig1, ax1 = plt.subplots(figsize=(10, 6))
+    # Create a single figure with two subplots for CPU and Memory usage, sharing a legend
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7, 3.5), sharex=True)
 
     cpu_no_traffic = [results['no_traffic'][f'{n}-nodes']['cpu'] for n in node_counts]
     cpu_with_traffic = [results['with_traffic'][f'{n}-nodes']['cpu'] for n in node_counts]
-
-    ax1.bar(x_pos - width/2, cpu_no_traffic, width, label='No Traffic', color='blue', alpha=0.8)
-    ax1.bar(x_pos + width/2, cpu_with_traffic, width, label='With Traffic', color='green', alpha=0.8)
-    ax1.set_xlabel('Number of Nodes')
-    ax1.set_ylabel('Mean CPU Usage (%)')
-    ax1.set_title('CPU Usage Comparison')
-    ax1.legend()
-    ax1.grid(True, alpha=0.3)
-    ax1.set_xticks(x_pos)
-    ax1.set_xticklabels(node_counts)
-
-    plt.tight_layout()
-    cpu_output_file = f"{base_path}/cpu_usage_comparison.png"
-    plt.savefig(cpu_output_file, dpi=300, bbox_inches='tight')
-    plt.close()
-
-    # Create memory usage comparison plot
-    fig2, ax2 = plt.subplots(figsize=(10, 6))
-
     memory_no_traffic = [results['no_traffic'][f'{n}-nodes']['memory'] for n in node_counts]
     memory_with_traffic = [results['with_traffic'][f'{n}-nodes']['memory'] for n in node_counts]
 
-    ax2.bar(x_pos - width/2, memory_no_traffic, width, label='No Traffic', color='blue', alpha=0.8)
-    ax2.bar(x_pos + width/2, memory_with_traffic, width, label='With Traffic', color='green', alpha=0.8)
-    ax2.set_xlabel('Number of Nodes')
+    # Bar plots for CPU usage
+    bars_cpu_no_traffic = ax1.bar(x_pos - width/2, cpu_no_traffic, width, label='No Traffic', color='blue', alpha=0.8)
+    bars_cpu_with_traffic = ax1.bar(x_pos + width/2, cpu_with_traffic, width, label='With Traffic', color='green', alpha=0.8)
+    ax1.set_ylabel('Mean CPU Usage (%)')
+    ax1.grid(True, alpha=0.3)
+
+    # Bar plots for Memory usage
+    bars_mem_no_traffic = ax2.bar(x_pos - width/2, memory_no_traffic, width, label='No Traffic', color='blue', alpha=0.8)
+    bars_mem_with_traffic = ax2.bar(x_pos + width/2, memory_with_traffic, width, label='With Traffic', color='green', alpha=0.8)
     ax2.set_ylabel('Mean Memory Usage (MiB)')
-    ax2.set_title('Memory Usage Comparison')
-    ax2.legend()
     ax2.grid(True, alpha=0.3)
+
+    # Set shared x-axis properties (only on the right subplot since sharex=True)
     ax2.set_xticks(x_pos)
     ax2.set_xticklabels(node_counts)
 
-    plt.tight_layout()
-    memory_output_file = f"{base_path}/memory_usage_comparison.png"
-    plt.savefig(memory_output_file, dpi=300, bbox_inches='tight')
+    # Add centered x-axis label below both subplots
+    fig.text(0.5, 0.02, 'Number of Nodes', ha='center', va='center')
+
+    # Create a shared legend
+    handles, labels = ax1.get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper center', ncol=2, frameon=False)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    combined_output_file = f"{base_path}/resource_usage_comparison.pdf"
+    plt.savefig(combined_output_file, bbox_inches='tight')
     plt.close()
 
-    print(f"\nCPU comparison plot saved to: {cpu_output_file}")
-    print(f"Memory comparison plot saved to: {memory_output_file}")
+    print(f"\nResource usage comparison plot saved to: {combined_output_file}")
 
     # Print summary table
     print("\n" + "="*60)

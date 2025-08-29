@@ -95,6 +95,7 @@ def create_plots(results_df, output_dir="plots"):
 
     # Set up the plotting style
     plt.style.use('seaborn-v0_8')
+    sns.set_context("notebook", font_scale=1)
     sns.set_palette("Blues")
 
     # Direction labels for plots
@@ -102,62 +103,54 @@ def create_plots(results_df, output_dir="plots"):
     target_label = 'ROS'
     source_timestamp = 'can_timestamp'
 
-    # Latency time series
-    plt.figure(figsize=(12, 8))
+    # Create a single wide figure with 4 subplots side by side
+    fig, axes = plt.subplots(1, 4, figsize=(14.2, 3.5))
+
     # Calculate elapsed time from the first timestamp
     elapsed_time = results_df[source_timestamp] - results_df[source_timestamp].min()
-    plt.plot(elapsed_time, results_df['latency'] * 1000000,
-             alpha=0.5, label='Raw Latency', color='blue')
-    plt.xlabel('Elapsed Time (s)')
-    plt.ylabel('Latency (μs)')
-    plt.title('Latency Time Series')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    time_series_file = os.path.join(plots_dir, 'latency_timeseries.png')
-    plt.savefig(time_series_file, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Latency time series plot saved to: {time_series_file}")
 
-    # Latency histogram
-    plt.figure(figsize=(12, 8))
-    plt.hist(results_df['latency'] * 1000000, bins=50, alpha=0.7, edgecolor='black', color='blue')
-    plt.xlabel('Latency (μs)')
-    plt.ylabel('Frequency')
-    plt.title(f'{source_label} to {target_label} Latency Distribution')
-    plt.grid(True, alpha=0.3)
-    latency_hist_file = os.path.join(plots_dir, 'latency_histogram.png')
-    plt.savefig(latency_hist_file, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Latency histogram saved to: {latency_hist_file}")
+    # Plot 1: Latency histogram
+    axes[0].hist(results_df['latency'] * 1000000, bins=50, alpha=0.7, edgecolor='black', color='blue')
+    axes[0].set_xlabel('Latency (μs)')
+    axes[0].set_ylabel('Frequency')
+    axes[0].grid(True, alpha=0.3)
 
-    # Jitter time series
+    # Plot 2: Jitter histogram (if available)
     if 'jitter' in results_df.columns:
-        plt.figure(figsize=(12, 8))
-        # Calculate elapsed time from the first timestamp
-        elapsed_time = results_df[source_timestamp][1:] - results_df[source_timestamp].min()
-        plt.plot(elapsed_time, results_df['jitter'][1:] * 1000000,
-                alpha=0.6, linewidth=1, color='blue')
-        plt.xlabel('Elapsed Time (s)')
-        plt.ylabel('Jitter (μs)')
-        plt.title('Jitter Time Series')
-        plt.grid(True, alpha=0.3)
-        jitter_timeseries_file = os.path.join(plots_dir, 'jitter_timeseries.png')
-        plt.savefig(jitter_timeseries_file, dpi=300, bbox_inches='tight')
-        plt.close()
-        print(f"Jitter time series plot saved to: {jitter_timeseries_file}")
+        axes[1].hist(results_df['jitter'][1:] * 1000000, bins=50, alpha=0.7, edgecolor='black', color='blue')
+        axes[1].set_xlabel('Jitter (μs)')
+        axes[1].set_ylabel('Frequency')
+        axes[1].grid(True, alpha=0.3)
+    else:
+        axes[1].text(0.5, 0.5, 'No jitter data available',
+                    ha='center', va='center', transform=axes[1].transAxes)
+ 
+    # Plot 3: Latency time series
+    axes[2].plot(elapsed_time, results_df['latency'] * 1000000,
+                alpha=0.7, label='Raw Latency', color='blue')
+    axes[2].set_xlabel('Elapsed Time (s)')
+    axes[2].set_ylabel('Latency (μs)')
+    axes[2].grid(True, alpha=0.3)
 
-    # Jitter histogram
+    # Plot 4: Jitter time series (if available)
     if 'jitter' in results_df.columns:
-        plt.figure(figsize=(12, 8))
-        plt.hist(results_df['jitter'][1:] * 1000000, bins=50, alpha=0.7, edgecolor='black', color='blue')
-        plt.xlabel('Jitter (μs)')
-        plt.ylabel('Frequency')
-        plt.title(f'{source_label} to {target_label} Jitter Distribution')
-        plt.grid(True, alpha=0.3)
-        jitter_hist_file = os.path.join(plots_dir, 'jitter_histogram.png')
-        plt.savefig(jitter_hist_file, dpi=300, bbox_inches='tight')
-        plt.close()
-        print(f"Jitter histogram saved to: {jitter_hist_file}")
+        elapsed_time_jitter = results_df[source_timestamp][1:] - results_df[source_timestamp].min()
+        axes[3].plot(elapsed_time_jitter, results_df['jitter'][1:] * 1000000,
+                    alpha=0.7, linewidth=1, color='blue')
+        axes[3].set_xlabel('Elapsed Time (s)')
+        axes[3].set_ylabel('Jitter (μs)')
+        axes[3].grid(True, alpha=0.3)
+
+    else:
+        axes[3].text(0.5, 0.5, 'No jitter data available',
+                    ha='center', va='center', transform=axes[3].transAxes)
+
+    # Adjust layout and save
+    plt.tight_layout()
+    combined_plot_file = os.path.join(plots_dir, 'latency_jitter_combined.pdf')
+    plt.savefig(combined_plot_file, bbox_inches='tight')
+    plt.close()
+    print(f"Combined plot saved to: {combined_plot_file}")
 
 def print_statistics(results_df, output_dir="plots"):
     """Print comprehensive statistics about the latency and jitter."""

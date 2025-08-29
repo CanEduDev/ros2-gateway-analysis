@@ -102,23 +102,38 @@ def create_plots(results_df, output_dir="plots"):
 
     # Set up the plotting style
     plt.style.use('seaborn-v0_8')
+    sns.set_context("notebook", font_scale=1)
     sns.set_palette("Blues")
 
-    # Message interval histogram
-    plt.figure(figsize=(12, 8))
-    plt.hist(results_df['interval'] * 1000, bins=50, alpha=0.7, edgecolor='black', color='blue')
-    plt.xlabel('Interval (ms)')
-    plt.ylabel('Frequency')
-    plt.title('Controller Node Transmission Interval Distribution')
-    plt.grid(True, alpha=0.3)
-    interval_hist_file = os.path.join(plots_dir, 'interval_histogram.png')
-    plt.savefig(interval_hist_file, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Interval histogram saved to: {interval_hist_file}")
+    # Create a single figure with 2 histograms side by side
+    fig, axes = plt.subplots(1, 2, figsize=(7, 3.5))
 
-    # Combined interval and jitter time series with dual y-axis
+    # Plot 1: Message interval histogram
+    axes[0].hist(results_df['interval'] * 1000, bins=50, alpha=0.7, edgecolor='black', color='blue')
+    axes[0].set_xlabel('Interval (ms)')
+    axes[0].set_ylabel('Frequency')
+    axes[0].grid(True, alpha=0.3)
+
+    # Plot 2: Jitter histogram (if available)
     if 'jitter' in results_df.columns:
-        fig, ax1 = plt.subplots(figsize=(12, 8))
+        axes[1].hist(results_df['jitter'][1:] * 1000, bins=50, alpha=0.7, edgecolor='black', color='blue')
+        axes[1].set_xlabel('Jitter (ms)')
+        axes[1].set_ylabel('Frequency')
+        axes[1].grid(True, alpha=0.3)
+    else:
+        axes[1].text(0.5, 0.5, 'No jitter data available',
+                    ha='center', va='center', transform=axes[1].transAxes)
+
+    # Adjust layout and save
+    plt.tight_layout()
+    combined_hist_file = os.path.join(plots_dir, 'interval_jitter_histograms.pdf')
+    plt.savefig(combined_hist_file, bbox_inches='tight')
+    plt.close()
+    print(f"Combined histograms saved to: {combined_hist_file}")
+
+    # Combined interval and jitter time series with dual y-axis (kept separate)
+    if 'jitter' in results_df.columns:
+        fig, ax1 = plt.subplots(figsize=(7, 3.5))
 
         # Calculate elapsed time from the first timestamp
         elapsed_time = results_df['timestamp'] - results_df['timestamp'].min()
@@ -143,34 +158,14 @@ def create_plots(results_df, output_dir="plots"):
         ax2.tick_params(axis='y', labelcolor=color2)
         ax2.set_ylim(0, 6)
 
-        # Add grid and title
+        # Add grid
         ax1.grid(True, alpha=0.3)
-        plt.title('Controller Node Transmission Interval and Jitter Time Series')
-
-        # Add legends
-        lines1, labels1 = ax1.get_legend_handles_labels()
-        lines2, labels2 = ax2.get_legend_handles_labels()
-        ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
 
         plt.tight_layout()
-        combined_timeseries_file = os.path.join(plots_dir, 'interval_jitter_combined.png')
-        plt.savefig(combined_timeseries_file, dpi=300, bbox_inches='tight')
+        combined_timeseries_file = os.path.join(plots_dir, 'interval_jitter_timeseries.pdf')
+        plt.savefig(combined_timeseries_file, bbox_inches='tight')
         plt.close()
         print(f"Combined interval and jitter time series plot saved to: {combined_timeseries_file}")
-
-    # Jitter histogram
-    if 'jitter' in results_df.columns:
-        plt.figure(figsize=(12, 8))
-        plt.hist(results_df['jitter'][1:] * 1000, bins=50, alpha=0.7, edgecolor='black', color='blue')
-        plt.xlabel('Jitter (ms)')
-        plt.ylabel('Frequency')
-        plt.title('Controller Node Transmission Jitter Distribution')
-        plt.grid(True, alpha=0.3)
-        jitter_hist_file = os.path.join(plots_dir, 'jitter_histogram.png')
-        plt.savefig(jitter_hist_file, dpi=300, bbox_inches='tight')
-        plt.close()
-        print(f"Jitter histogram saved to: {jitter_hist_file}")
-
 
 def print_statistics(results_df, output_dir="plots"):
     """Print comprehensive statistics about the jitter analysis."""

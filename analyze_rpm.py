@@ -99,66 +99,27 @@ def create_plots(results_df, output_dir="plots"):
 
     # Set up the plotting style
     plt.style.use('seaborn-v0_8')
+    sns.set_context("notebook", font_scale=1)
     sns.set_palette("Blues")
 
     # RPM comparison plot
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(7, 3.5))
     # Calculate elapsed time from the first timestamp
     elapsed_time = results_df['can_timestamp'] - results_df['can_timestamp'].min()
 
     plt.plot(elapsed_time, results_df['can_rpm'],
-             alpha=0.7, linewidth=2, label='CAN Wheel RPM', color='blue')
+             alpha=0.7, linewidth=2, label='CAN Wheel RPM', color='darkblue', linestyle='-')
     plt.plot(elapsed_time, results_df['ros_rpm'],
-             alpha=0.7, linewidth=2, label='ROS Wheel Status', color='red')
+             alpha=0.7, linewidth=2, label='ROS Wheel Status', color='orange', linestyle='--')
 
     plt.xlabel('Elapsed Time (s)')
     plt.ylabel('RPM')
-    plt.title('RPM Comparison: CAN vs ROS')
-    plt.legend()
+    plt.legend(bbox_to_anchor=(0.5, 1.02), loc='lower center', ncol=2)
     plt.grid(True, alpha=0.3)
-    rpm_comparison_file = os.path.join(plots_dir, 'rpm_comparison.png')
-    plt.savefig(rpm_comparison_file, dpi=300, bbox_inches='tight')
+    rpm_comparison_file = os.path.join(plots_dir, 'rpm_comparison.pdf')
+    plt.savefig(rpm_comparison_file, bbox_inches='tight')
     plt.close()
     print(f"RPM comparison plot saved to: {rpm_comparison_file}")
-
-    # Delay time series
-    plt.figure(figsize=(12, 8))
-    plt.plot(elapsed_time, results_df['delay'] * 1000000,
-             alpha=0.5, label='Delay', color='blue')
-    plt.xlabel('Elapsed Time (s)')
-    plt.ylabel('Delay (μs)')
-    plt.title('Delay Time Series (CAN to ROS)')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    delay_timeseries_file = os.path.join(plots_dir, 'delay_timeseries.png')
-    plt.savefig(delay_timeseries_file, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Delay time series plot saved to: {delay_timeseries_file}")
-
-    # Delay histogram
-    plt.figure(figsize=(12, 8))
-    plt.hist(results_df['delay'] * 1000000, bins=50, alpha=0.7, edgecolor='black', color='blue')
-    plt.xlabel('Delay (μs)')
-    plt.ylabel('Frequency')
-    plt.title('Delay Distribution (CAN to ROS)')
-    plt.grid(True, alpha=0.3)
-    delay_hist_file = os.path.join(plots_dir, 'delay_histogram.png')
-    plt.savefig(delay_hist_file, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Delay histogram saved to: {delay_hist_file}")
-
-    # RPM difference plot
-    plt.figure(figsize=(12, 8))
-    rpm_diff = results_df['ros_rpm'] - results_df['can_rpm']
-    plt.plot(elapsed_time, rpm_diff, alpha=0.7, linewidth=2, color='blue')
-    plt.xlabel('Elapsed Time (s)')
-    plt.ylabel('RPM Difference (ROS - CAN)')
-    plt.title('RPM Difference Over Time')
-    plt.grid(True, alpha=0.3)
-    rpm_diff_file = os.path.join(plots_dir, 'rpm_difference.png')
-    plt.savefig(rpm_diff_file, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"RPM difference plot saved to: {rpm_diff_file}")
 
 def print_statistics(results_df, output_dir="plots"):
     """Print comprehensive statistics about the RPM data and delays."""

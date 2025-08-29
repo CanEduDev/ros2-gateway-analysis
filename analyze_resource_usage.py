@@ -2,128 +2,13 @@
 """
 Resource Usage Analyzer
 
-This script analyzes resource usage CSV data and generates plots and statistics.
+This script analyzes resource usage CSV data and generates statistics.
 """
 
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 import os
 import argparse
 import sys
-
-
-def create_plots(csv_file: str, output_dir: str):
-    """
-    Create plots from the collected Docker stats data.
-
-    Args:
-        csv_file: Path to the CSV file with stats data
-        output_dir: Output directory for plots
-    """
-    if not os.path.exists(csv_file):
-        print(f"CSV file not found: {csv_file}")
-        return
-
-    # Create plots subdirectory
-    plots_dir = os.path.join(output_dir, "plots")
-    os.makedirs(plots_dir, exist_ok=True)
-
-    # Load data
-    df = pd.read_csv(csv_file)
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-
-    # Convert relative time to seconds from start
-    df['relative_time'] = (df['timestamp'] - df['timestamp'].min()).dt.total_seconds()
-
-    # Set up plotting style
-    plt.style.use('seaborn-v0_8')
-    sns.set_palette("Blues")
-
-    # 1. CPU usage over time
-    plt.figure(figsize=(12, 8))
-    # Extract CPU percentage (remove % sign and convert to float)
-    cpu_percent = df['CPUPerc'].str.rstrip('%').astype(float)
-    plt.plot(df['relative_time'], cpu_percent, linewidth=2, color='blue')
-    plt.xlabel('Time (seconds)')
-    plt.ylabel('CPU Usage (%)')
-    plt.title('CPU Usage Over Time')
-    plt.grid(True, alpha=0.3)
-    cpu_file = os.path.join(plots_dir, 'cpu_usage_over_time.png')
-    plt.savefig(cpu_file, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"CPU usage plot saved to: {cpu_file}")
-
-    # 2. Memory usage over time
-    plt.figure(figsize=(12, 8))
-    # Extract memory usage (convert from format like "1.983GiB / 15.51GiB")
-    memory_usage = []
-    for mem_str in df['MemUsage']:
-        try:
-            # Extract the first part (used memory) and convert to MiB
-            used_mem = mem_str.split('/')[0].strip()
-            if 'GiB' in used_mem:
-                mem_mb = float(used_mem.replace('GiB', '')) * 1024
-            elif 'MiB' in used_mem:
-                mem_mb = float(used_mem.replace('MiB', ''))
-            elif 'KiB' in used_mem:
-                mem_mb = float(used_mem.replace('KiB', '')) / 1024
-            else:
-                mem_mb = 0
-            memory_usage.append(mem_mb)
-        except:
-            memory_usage.append(0)
-
-    plt.plot(df['relative_time'], memory_usage, linewidth=2, color='red')
-    plt.xlabel('Time (seconds)')
-    plt.ylabel('Memory Usage (MiB)')
-    plt.title('Memory Usage Over Time')
-    plt.grid(True, alpha=0.3)
-    memory_file = os.path.join(plots_dir, 'memory_usage_over_time.png')
-    plt.savefig(memory_file, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Memory usage plot saved to: {memory_file}")
-
-    # 3. Memory percentage over time
-    plt.figure(figsize=(12, 8))
-    # Extract memory percentage (remove % sign and convert to float)
-    mem_percent = df['MemPerc'].str.rstrip('%').astype(float)
-    plt.plot(df['relative_time'], mem_percent, linewidth=2, color='green')
-    plt.xlabel('Time (seconds)')
-    plt.ylabel('Memory Usage (%)')
-    plt.title('Memory Usage Percentage Over Time')
-    plt.grid(True, alpha=0.3)
-    mem_percent_file = os.path.join(plots_dir, 'memory_percentage_over_time.png')
-    plt.savefig(mem_percent_file, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Memory percentage plot saved to: {mem_percent_file}")
-
-    # 4. Combined CPU and Memory plot
-    plt.figure(figsize=(14, 10))
-
-    # Create subplots
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10))
-
-    # CPU subplot
-    ax1.plot(df['relative_time'], cpu_percent, linewidth=2, color='blue')
-    ax1.set_xlabel('Time (seconds)')
-    ax1.set_ylabel('CPU Usage (%)')
-    ax1.set_title('CPU Usage Over Time')
-    ax1.grid(True, alpha=0.3)
-
-    # Memory subplot
-    ax2.plot(df['relative_time'], memory_usage, linewidth=2, color='red')
-    ax2.set_xlabel('Time (seconds)')
-    ax2.set_ylabel('Memory Usage (MiB)')
-    ax2.set_title('Memory Usage Over Time')
-    ax2.grid(True, alpha=0.3)
-
-    plt.tight_layout()
-    combined_file = os.path.join(plots_dir, 'cpu_memory_combined.png')
-    plt.savefig(combined_file, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Combined CPU and Memory plot saved to: {combined_file}")
-
 
 def print_statistics(csv_file: str, output_dir: str):
     """
@@ -217,7 +102,7 @@ def print_statistics(csv_file: str, output_dir: str):
 def main():
     """Main function."""
     parser = argparse.ArgumentParser(
-        description='Analyze resource usage CSV data and generate plots and statistics'
+        description='Analyze resource usage CSV data and generate statistics'
     )
     parser.add_argument(
         '--input-csv', '-i',
@@ -229,7 +114,7 @@ def main():
         '--output-dir', '-o',
         type=str,
         required=True,
-        help='Output directory for plots and results (required)'
+        help='Output directory for results (required)'
     )
 
     args = parser.parse_args()
@@ -245,9 +130,6 @@ def main():
     try:
         # Print statistics
         print_statistics(args.input_csv, args.output_dir)
-
-        # Create plots
-        create_plots(args.input_csv, args.output_dir)
 
         print(f"\nAnalysis completed. Results saved to: {args.output_dir}")
 
